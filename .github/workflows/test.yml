@@ -17,24 +17,21 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        mode: [rm, rmz]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Show disk BEFORE (${{ matrix.mode }})
+      - name: Show disk BEFORE
         run: df -h /
 
       # If your action is in the repo root (action.yml at top level):
-      - name: Run free-disk-space (mode=${{ matrix.mode }})
+      - name: Run free-disk-space
         uses: ./
         with:
-          # Modes allowed include [ rmz, find, rsync, rm]
-          removalmode: ${{ matrix.mode }}
           dotnet: "true"
           haskell: "true"
           swap-storage: "true"
 
-      - name: Show disk AFTER (${{ matrix.mode }})
+      - name: Show disk AFTERx.mode }})
         run: df -h /

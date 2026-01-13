@@ -8,12 +8,6 @@ branding:
   color: "green"
 
 inputs:
-  removalmode:
-    # See analysis in https://github.com/SUPERCILEX/fuc/tree/master/comparisons
-    description: "File removal mode [rmz, rm]"
-    required: false
-    default: "rmz"
-
   dotnet:
     description: "Remove .NET runtime"
     required: false
@@ -64,40 +58,6 @@ runs:
         # MACROS
         # ======
 
-        setup_rmz() {
-          curl -fsSL --tlsv1.2 --proto '=https' https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash > /dev/null 2>&1
-          cargo binstall -qy rmz
-          if [[ "$OS_TYPE" != "Windows" ]]; then
-            ln -s ~/.cargo/bin/rmz /usr/local/bin/rmz
-          fi
-        }
-
-        fast_rmdir() {
-          # See analysis in https://github.com/SUPERCILEX/fuc/tree/master/comparisons
-          #
-          if [[ -d "$1" ]] && [[ -n "$1" ]] && [[ ! "$1" = "/" ]] && [[ ! "$1" = "~" ]]; then
-            echo "Removing directory: $1"
-            case "${{ inputs.removalmode }}" in
-              "rmz")
-                # Remove with rmz (requires separate download step)
-                $USE_SUDO rmz -f "$1" || true
-                ;;
-              "rm")
-                # Remove with a standard Unix command
-                $USE_SUDO rm -rf "$1"
-                ;;
-              "*")
-                echo "ERROR: Invalid removalmode specified.  Valid values are [rmz, rm]"
-                exit -1
-                ;;
-            esac
-          fi
-        }
-
-        list_installed_dpkg() {
-          dpkg --get-selections $@ | grep -v deinstall | awk '{print $1}'
-        }
-
         # macro to print a line of equals
         # (silly but works)
         printSeparationLine() {
@@ -132,15 +92,9 @@ runs:
           printSeparationLine '=' 80
         }
 
-
-
         # ======
         # SCRIPT
         # ======
-
-        if [[ ${{ inputs.removalmode }} == 'rmz' ]]; then
-          setup_rmz
-        fi
 
         printDF "BEFORE CLEAN-UP:"
         echo ""
@@ -151,15 +105,15 @@ runs:
 
         if [[ ${{ inputs.dotnet }} == 'true' ]]; then
           echo "Removing .NET runtime..."
-          fast_rmdir "$DOTNET_PATH" || true
+          $USE_SUDO rm -rf "$DOTNET_PATH" || true
         fi
 
         # Option: Remove Haskell runtime
 
         if [[ ${{ inputs.haskell }} == 'true' ]]; then
           echo "Removing Haskell runtime..."
-          fast_rmdir "$HASKELL_PATH" || true
-          fast_rmdir "$HASKELL_PATH2" || true
+          $USE_SUDO rm -rf "$HASKELL_PATH" || true
+          $USE_SUDO rm -rf "$HASKELL_PATH2" || true
         fi
 
         # Option: Remove Swap storage
@@ -176,8 +130,6 @@ runs:
             free -h 2>/dev/null || true
           fi
         fi
-
-
 
         echo ""
         printDF "AFTER CLEAN-UP:"
