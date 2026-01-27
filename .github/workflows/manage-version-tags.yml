@@ -17,6 +17,6 @@ jobs:
           fetch-depth: 0  # Fetch all history to access tags
 
       - name: Manage short version tags
-        uses: ./.github/actions/manage-tags
+        uses: twsl/gha-manage-version-tags@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
